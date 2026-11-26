@@ -191,7 +191,18 @@ class PaperEngine:
                     self._paper_exit(ltp, "4% take-profit")
                     return
 
-            depth = tick.get("深度") or tick.get("depth")
+            # Reject stale exchange timestamps for signal generation. Risk exits above
+            # still run from the latest available LTP before this freshness gate.
+            tick_time = tick.get("exchange_timestamp") or tick.get("last_trade_time")
+            if tick_time is not None:
+                if tick_time.tzinfo is None:
+                    tick_time = tick_time.replace(tzinfo=IST)
+                age_seconds = (now - tick_time.astimezone(IST)).total_seconds()
+                if age_seconds < -2 or age_seconds > 10:
+                    self.log_event("WAIT", ltp, 0, f"Stale/out-of-order tick ({age_seconds:.1f}s)")
+                    return
+
+            depth = tick.get("depth")
             if not isinstance(depth, dict):
                 self.log_event("WAIT", ltp, 0, "No depth in tick; fail-closed")
                 return
