@@ -77,7 +77,7 @@ class HeatmapLiquidityStrategy(QCAlgorithm):
 
             bid_wall = max((q for _, q in bid_levels), default=0.0)
             ask_wall = max((q for _, q in ask_levels), default=0.0)
-            current_depth = (bid_total + ask_total) / 2.0
+            current_depth = (bid_total + ask_total) / 10.0  # mean quantity per displayed level across 10 levels
             self.depth_history.append(current_depth)
             baseline = (sum(self.depth_history) / len(self.depth_history)) if self.depth_history else 0.0
 
