@@ -26,6 +26,7 @@ import os
 import signal
 import threading
 import time
+import json
 from collections import deque
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -286,8 +287,18 @@ def main():
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s"
     )
-    api_key = os.getenv("KITE_API_KEY")
-    access_token = os.getenv("KITE_ACCESS_TOKEN")
+    # Prefer explicit environment variables; otherwise load the locally generated
+    # daily session file from the user's home directory. Never commit this file.
+    session_path = Path.home() / ".kiteconnect" / "session.json"
+    session = {}
+    if session_path.exists():
+        try:
+            session = json.loads(session_path.read_text(encoding="utf-8"))
+        except Exception:
+            LOG.exception("Could not read local Kite session file")
+
+    api_key = os.getenv("KITE_API_KEY") or session.get("api_key")
+    access_token = os.getenv("KITE_ACCESS_TOKEN") or session.get("access_token")
     token = os.getenv("KITE_INSTRUMENT_TOKEN")
     symbol = os.getenv("KITE_TRADINGSYMBOL", "RELIANCE").upper()
     if not all([api_key, access_token, token]):
