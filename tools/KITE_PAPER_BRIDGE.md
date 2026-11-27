@@ -17,7 +17,21 @@ Install dependencies:
 python -m pip install -r tools/requirements-kite-paper.txt
 ```
 
-## 2. Configure secrets locally
+## 2. Authenticate locally (recommended)
+
+The repository includes `tools/kite_login.py`, a local login helper. It opens the official Kite login page, receives the short-lived request token on the registered local redirect, asks for the API secret using hidden terminal input, and exchanges it for the daily access token.
+
+Run it from the repository root after activating the virtual environment:
+
+```powershell
+python tools/kite_login.py
+```
+
+Enter your API key when prompted and type the API secret at the hidden prompt. Complete Kite login and 2FA in the browser. The helper stores only the API key and access token in `%USERPROFILE%\\.kiteconnect\\session.json`; it does not save the API secret. Keep that session file private. The access token normally expires at 6 AM the next day, so repeat this login each trading day.
+
+The app's registered Redirect URL must be exactly `http://127.0.0.1:8000` for this local helper. Only one process can use that port at a time.
+
+## 3. Configure the instrument locally
 
 Set environment variables in your terminal. Do not add credentials to source,
 GitHub, screenshots, chat, or shared files.
@@ -47,13 +61,13 @@ flow for your own app. Tokens generally expire and must be refreshed according
 to Zerodha's current authentication process. This script intentionally does
 not automate login or store credentials.
 
-## 3. Choose the correct NSE instrument token
+## 4. Choose the correct NSE instrument token
 
 Use the instrument master supplied by Kite Connect and verify that the
 instrument is the NSE cash-equity listing for the exact trading symbol.
 Do not guess a token. The token is not the stock's ticker symbol.
 
-## 4. Paper-trading rules
+## 5. Paper-trading rules
 
 - Daily EMA(20) > EMA(50), RSI(14) between 50 and 70.
 - Five-level bid quantity imbalance >= +20%.
@@ -74,7 +88,7 @@ Environment overrides:
 | PAPER_TARGET_PCT | 0.04 |
 | PAPER_CSV | paper_signals.csv |
 
-## 5. Important limitations
+## 6. Important limitations
 
 1. This is a live-data paper simulator, not an exchange simulator. It does not
    model brokerage, STT, GST, stamp duty, slippage, queue priority, partial
@@ -92,7 +106,7 @@ Environment overrides:
    weeks of records. This is experimental software, not a recommendation to buy
    or sell any security.
 
-## 6. LEAN relationship
+## 7. LEAN relationship
 
 The existing `Algorithm.Python/HeatmapLiquidityStrategy.py` is a separate
 LEAN-side reference implementation. This standalone Kite bridge is not wired
